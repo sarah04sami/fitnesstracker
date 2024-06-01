@@ -1,0 +1,496 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+using namespace std;
+
+struct UserProfile//sarah alkhuwaytim
+{
+  string name;
+  string password;
+  float height;
+  float weight;
+  int dailyActivityGoal;
+  int steps;
+  int caloriesBurned;
+  float distanceCovered;
+  int days;  // Fatimah
+  double averagesteps ; // Fatimah
+  double averagecaloriesBurned ; // Fatimah
+  float averagedistanceCovered;	// Fatimah
+};
+const string filename = "user_details.txt";//len
+const int MAX = 50;
+             
+//function prototypes;
+void displayMenu ();//sarah alkhuwaytim
+void newUser (UserProfile users[], int &numUsers);
+void login (UserProfile users[], int numUsers);
+bool CheckUsername (const string & username, UserProfile users[],
+					int numUsers);
+void updateProfile(UserProfile users[], int numUsers);		//ibtihaj and jood		
+void setActivityGoal(UserProfile users[], int numUsers);
+void trackActivity(UserProfile users[], int numUsers);		// Lama 
+void displayProgress(UserProfile users[], int numUsers);
+void displayStatistics(UserProfile users[], int numUsers );   // Fatimah
+void deleteAccount(UserProfile users[], int &numUsers, const string &filename); // len
+void saveDataToFile(const UserProfile users[], int numUsers, const string& filename, bool append );
+int loadDataFromFile(UserProfile users[], int &numUsers);
+void exitProgram();
+void calculateBodyMassCalories();  // jood 
+
+// Function definition to save user data to a file,len alqhtani
+void saveDataToFile(const UserProfile users[], int numUsers, const string& filename, bool append = false) {
+  ofstream outfile; 
+  
+   if (append) {
+        outfile.open("user_details.txt", ios::app); 
+    } else {
+        outfile.open("user_details.txt", ios::out); 
+    }
+
+	if (outfile.is_open()) {
+	    if (!append) {
+            outfile << "name,password,height,weight,dailyActivityGoal,steps,caloriesBurned,distanceCovered,days" << endl;
+        }
+        // Write user data to the file
+       for (int i = 0; i < numUsers; ++i) {
+            outfile << users[i].name << ",";
+            outfile << users[i].password << ",";
+            outfile << users[i].height << ",";
+            outfile << users[i].weight << ",";
+            outfile << users[i].dailyActivityGoal << ",";
+            outfile << users[i].steps << ",";
+            outfile << users[i].caloriesBurned << ",";
+            outfile << users[i].distanceCovered << ",";
+            outfile << users[i].days << endl; 
+        }
+        
+        outfile.close(); 
+        cout<<"successfully saved to file (user_details.txt)"<<endl;
+    } else {
+        cerr << "Error: Could not open file '" << filename << "' for writing." << endl;
+    }
+}
+// Function to read user data from a file ,len alqhtani
+int loadDataFromFile(UserProfile users[], int &numUsers) {
+  ifstream infile("user_details.txt");  
+    
+    
+    if (infile.is_open()) {
+        string line;
+        getline(infile, line); 
+        numUsers = 0;
+        while (getline(infile, line)&& numUsers < MAX)
+        {
+            istringstream lineStream(line);
+            getline(lineStream, users[numUsers].name, ',');
+            getline(lineStream, users[numUsers].password, ',');
+            lineStream >> users[numUsers].height; 
+            lineStream >> users[numUsers].weight; 
+            lineStream >> users[numUsers].dailyActivityGoal;
+            lineStream >> users[numUsers].steps;
+            lineStream >> users[numUsers].caloriesBurned;
+            lineStream >> users[numUsers].distanceCovered; 
+            lineStream >> users[numUsers].days;
+            numUsers++;
+        }
+        infile.close();
+     
+    } else {
+        cerr << "Could not open file for reading." << endl;
+    }
+
+    return numUsers;;
+}
+// Function to print data from the user_details.txt file (ibtihaj alqhtani )
+void printUserDataFromFile(const string& filename) {
+    ifstream infile("user_details.txt");
+    if (!infile.is_open()) {
+        cerr << "Error: Could not open file " << filename << " for reading." << endl;
+        return;
+    }
+
+    string line;
+    cout << "User data from 'user_details.txt':" << endl;
+    while (getline(infile, line)) {
+        cout << line << endl;
+    }
+
+    infile.close();
+}
+
+
+
+
+int main ()
+{
+   
+
+  UserProfile users[MAX];//sarah alkhuwaytim
+  int numUsers =0;
+  loadDataFromFile(users, numUsers);
+
+  // Menu , //sarah alkhuwaytim
+  while (true)
+	{
+	  displayMenu ();//sarah alkhuwaytim
+	  int preference;
+	  cout << "choose from the menu: ";
+	  cin >> preference;
+
+	  switch (preference)
+		{
+		case 1:
+		  newUser (users, numUsers);//sarah alkhuwaytim
+		  saveDataToFile(users, numUsers, filename,false); //len
+		  break;
+		case 2:
+		  login (users, numUsers);//sarah alkhuwaytim
+		  break;
+		case 3:
+            updateProfile(users, numUsers);
+		  saveDataToFile(users, numUsers, filename,false); //len
+            break;  
+        case 4:
+            setActivityGoal(users, numUsers);	// Lama Al Alshaikh
+		  saveDataToFile(users, numUsers, filename,false); //len
+            break;
+        case 5:
+            trackActivity(users, numUsers);
+		  saveDataToFile(users, numUsers, filename,false); //len
+            break;
+        case 6:
+            displayProgress(users, numUsers);
+		  saveDataToFile(users, numUsers, filename,false); //len
+            break;
+        case 7:
+        	displayStatistics(users, numUsers);
+		  saveDataToFile(users, numUsers, filename,false); //len
+        	break;
+		 case 8:
+         deleteAccount(users, numUsers, filename);
+         saveDataToFile(users, numUsers, filename,false); //len
+        break;
+        case 9: //ibtihaj 
+        printUserDataFromFile(filename);
+        break;
+         case 10:
+                calculateBodyMassCalories(); // jood alzayer
+                break;
+        case 11:
+        exitProgram(); //ibtihaj and jood
+        break;
+    default:
+        cout << "Invalid. Please try again." << endl;
+}
+	}
+  return 0;
+  
+   
+}
+
+// Function to display the menu options
+void displayMenu ()
+{
+    //ANSI escape sequences are used (ibtihaj alqhtnai )
+     
+    cout << "\033[32m"; 
+
+//print text  in green 
+    cout << "FDA Insights on Tracking Physical Activity and Health\n";
+    cout << "Maintaining physical activity is essential for overall body and mind health. Effective fitness tracking involves setting achievable goals, such as daily step counts or calories burned, and consistently monitoring progress by documenting activities like walking, running, and cycling. Combining proper nutrition with exercise enhances health benefits, and balancing physical activity with rest is crucial to prevent fatigue and injuries. Utilizing fitness tracking devices and apps can aid in monitoring health, but they should be part of a broader health strategy. Consulting healthcare professionals before starting any new physical activity program is advisable, especially for individuals with chronic conditions.\n";
+
+    cout << "\033[0m";
+    
+  cout << "Fitness Tracker Menu" << endl;//sarah alkhuwaytim
+  cout << "1. Register" << endl;//sarah alkhuwaytim
+  cout << "2. Login" << endl;//sarah alkhuwaytim
+  cout << "3. Update Profile" << endl;  //ibtihaj and jood
+  cout << "4. Set Daily Activity Goal" << endl;	// Lama Al Alshaikh
+  cout << "5. Track Activity" << endl;
+  cout << "6. Display Progress" << endl;
+  cout << "7. Display Statistics" << endl;
+  cout << "8. Delete Account" << endl;//len alqhtani
+  cout << "9. Print User Data from File" << endl; // ibtihaj alqhtani 
+  cout << "10. Calculate Body Mass Calories" << endl; // jood alzayer
+  cout << "11. Exit" << endl;
+}
+
+// Function to register a new user,//sarah alkhuwaytim
+void newUser (UserProfile users[], int &numUsers)
+{
+	 if (numUsers >= 50) //ibtihaj and jood 
+    {
+        cout << "Maximum number of users reached. Cannot register more users." << endl;
+        return;
+    } 
+
+  UserProfile newUser;//sarah alkhuwaytim
+  cout << "Enter username: ";
+  cin >> newUser.name;
+
+
+  if (CheckUsername (newUser.name, users, numUsers)) //sarah alkhuwaytim
+	{
+	  cout << "Please choose another UserName." << endl;
+	  return;
+	}
+
+  cout << "Enter password: ";
+  cin >> newUser.password;
+  cout << "Enter height (in cm): ";
+  cin >> newUser.height;
+  cout << "Enter weight (in kg): ";
+  cin >> newUser.weight;
+  newUser.dailyActivityGoal = 0;	// Lama Al Alshaikh
+  newUser.caloriesBurned = 0;
+  newUser.days=0;
+  
+  // Add to the array
+  users[numUsers++] = newUser;
+  cout << "User registered successfully." << endl;
+  
+  
+}
+
+// check if username already exists,//sarah alkhuwaytim
+bool CheckUsername (const string & name, UserProfile users[], int numUsers)
+{
+  for (int i = 0; i < numUsers; ++i)
+	{
+	  if (users[i].name == name)
+		{
+		    
+		  return true;	
+		  }
+		  
+	}
+  return false;
+	}
+    
+      
+
+
+// login an existing user,//sarah alkhuwaytim
+void login (UserProfile users[], int numUsers)
+{
+  string name, password;
+  cout << "Enter username: ";
+  cin >> name;
+  cout << "Enter password: ";
+  cin >> password;
+
+  // Search in the array,//sarah alkhuwaytim
+  for (int i = 0; i < numUsers; ++i)
+	{
+	  if (users[i].name == name && users[i].password == password)
+		{
+		  cout << "Welcome back, " << name << "!" << endl;
+		    // Add the current date and time to the welcome message (ibtihaj )
+            time_t now = time(0);
+            tm* ltm = localtime(&now);
+            cout << "You logged in at " << (ltm->tm_mday) << "/" << (ltm->tm_mon+1) << "/" << (ltm->tm_year+1900) << " " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
+		
+		  return;
+		}
+	}
+
+  cout << "Invalid username or password. Please try again." << endl;
+}
+// Function to update user profile, ibtihaj and jood
+void updateProfile(UserProfile users[], int numUsers)
+{
+    string username;
+    cout << "Enter username to update profile: ";
+    cin >> username;
+
+    // Search for the user ,ibtihaj and jood 
+    for (int i = 0; i < numUsers; ++i)
+    {
+        if (users[i].name == username)
+        {
+            cout << "Enter new height (in cm): ";
+            cin >> users[i].height;
+            cout << "Enter new weight (in kg): ";
+            cin >> users[i].weight;
+            cout << "Profile updated successfully." << endl;
+            return;
+        }
+    }
+
+    cout << "User not found. Please enter a valid username." << endl;
+}
+
+// Function to set daily activity goal, // Lama Al Alshaikh
+void setActivityGoal(UserProfile users[], int numUsers) {
+    string username;
+    cout << "Enter username to set daily activity goal: ";
+    cin >> username;
+
+    // Search for the user
+    for (int i = 0; i < numUsers; ++i) {
+        if (users[i].name == username) { 
+            cout << "Enter daily activity goal (number of steps): ";
+            cin >> users[i].dailyActivityGoal;
+            cout << "Daily activity goal set successfully." << endl;
+            return;
+        }
+    }
+
+    cout << "User not found. Please enter a valid username." << endl;
+}
+// Function to track user's activity, // Lama Al Alshaikh
+void trackActivity(UserProfile users[], int numUsers) {
+    string username;
+    cout << "Enter username to track activity: ";
+    cin >> username;
+
+    // Search for the user
+    for (int i = 0; i < numUsers; ++i) {
+        if (users[i].name == username) { 
+            int steps, caloriesBurned;
+            float distanceCovered;
+            cout << "Enter steps taken: ";
+            cin >> steps;
+            cout << "Enter calories burned: ";
+            cin >> caloriesBurned;
+            cout << "Enter distance covered (in km): ";
+            cin >> distanceCovered;
+
+            // Update user's activity
+            users[i].steps += steps;
+            users[i].caloriesBurned += caloriesBurned;
+            users[i].distanceCovered += distanceCovered;
+            users[i].days++;
+            cout << "Activity tracked successfully." << endl;
+            return;
+        }
+    }
+
+    cout << "User not found. Please enter a valid username." << endl;
+}
+
+// Function to display user's progress, // Lama Al Alshaikh
+void displayProgress(UserProfile users[], int numUsers) {
+    string username;
+    cout << "Enter username to display progress: ";
+    cin >> username;
+
+    // Search for the user
+    for (int i = 0; i < numUsers; ++i) {
+        if (users[i].name == username) { 
+            cout << "Daily Activity Goal: " << users[i].dailyActivityGoal << " steps" << endl;
+            cout << "Steps taken: " << users[i].steps << endl;
+            cout << "Calories burned: " << users[i].caloriesBurned << endl;
+            cout << "Distance covered: " << users[i].distanceCovered << " km" << endl;
+            cout << "Total days: " << users[i].days << endl;
+            return;
+        }
+    }
+
+    cout << "User not found. Please enter a valid username." << endl;
+}
+// Function to display Statistic// Fatimah 
+void displayStatistics(UserProfile users[], int numUsers)
+{ 
+    string username;
+    cout << "Enter username to display statistic: ";
+    cin >> username;
+   
+   for ( int i=0; i<numUsers; ++i)
+   {
+   	  if (users[i].name == username) { 
+   	  
+   	     	  int steps , days, caloriesBurned ;
+   	  float distanceCovered , averagedistanceCovered;
+   	  double averagesteps , averagecaloriesBurned ;
+		
+   	     cout << " Enter statistic for user :"	<< users[i].name<< endl;
+   	     cout << " Enter the steps taken: " <<  endl;
+   	     cin>> steps ;
+		 cout << " Enter days :" ; 
+		 cin >> days;	
+   	     cout << " Enter Calories burned: " <<  endl;
+   	     cin >> caloriesBurned;
+         cout << " Enter Distance covered (km): "  << endl;
+         cin >> distanceCovered ;
+         
+         
+          users[i].days+=days;
+		 users[i].steps+=steps;
+		 users[i].caloriesBurned+=caloriesBurned;
+		 users[i].distanceCovered+=distanceCovered;
+         averagesteps = steps/days;
+         averagecaloriesBurned = caloriesBurned /days;
+         averagedistanceCovered = distanceCovered /days;
+         
+         cout << " average step per day: " <<users[i].steps /users[i].days<<endl;
+         cout << "average Calories burned: "  << users[i].caloriesBurned /users[i].days << endl;
+         cout << " average Distance covered: " <<  users[i].distanceCovered/users[i].days << endl ;
+		
+		 
+   	
+            return;
+      }  
+   }
+       cout << "User not found. Please try again." << endl; 
+}
+// Function to deleteAccount,len alqhtani
+void deleteAccount(UserProfile* users, int& numUsers, const string& filename) {
+    string name, password;
+    cout << "Enter your username: ";
+    cin >> name;
+    cout << "Enter your password: ";
+    cin >> password;
+
+    // Search for the user
+    for (int i = 0; i < numUsers; ++i) {
+        if (users[i].name == name && users[i].password == password) {
+            for (int j = i; j < numUsers - 1; ++j) {
+                users[j] = users[j + 1];
+            }
+            numUsers--;
+            cout << "Account deleted successfully." << endl;
+            return;
+        }
+    }
+    cout << "Invalid username or password... Please try again." << endl;
+}
+
+// Function to exit the program
+void exitProgram() 
+{
+    
+    cout << "Exiting..." << endl;
+    exit(0);
+}
+
+// Function to calculate body mass calories , jood alzayer 
+void calculateBodyMassCalories() {
+    float weight, height;
+    int age;
+    char gender;
+
+    cout << "Enter your weight (in kg): ";
+    cin >> weight;
+    cout << "Enter your height (in cm): ";
+    cin >> height;
+    cout << "Enter your age: ";
+    cin >> age;
+    cout << "Enter your gender (M/F): ";
+    cin >> gender;
+
+    float bmr;
+
+    if (gender == 'M' || gender == 'm') {
+        bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else if (gender == 'F' || gender == 'f') {
+        bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    } else {
+        cout << "Invalid gender input. Please enter M for male or F for female." << endl;
+        return;
+    }
+
+    cout << "Your Basal Metabolic Rate (BMR) is " << bmr << " calories/day." << endl;
+}
